@@ -1,9 +1,9 @@
 # KAMPU · Tour Manager (frontend Angular + Tailwind CDN)
 
-Angular 18 (standalone, signals) + Tailwind por CDN + SweetAlert2. Se conecta al backend `lp2_gp2` (Spring Boot + Oracle); ver el README de la raíz del proyecto.
+Angular 18 (standalone, signals) + Tailwind por CDN + SweetAlert2. Se conecta al backend `kampu-backend` (Spring Boot + Oracle); ver el README de la raíz del proyecto.
 
 ## Ejecutar
-Primero levanta Oracle y el backend (`lp2_gp2`, puerto 8082). Luego:
+Primero levanta Oracle y el backend (`kampu-backend`, puerto 8082). Luego:
 ```
 npm install
 npm start
