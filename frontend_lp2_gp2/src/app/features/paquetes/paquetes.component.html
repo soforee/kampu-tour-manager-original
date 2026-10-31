@@ -1,0 +1,105 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+  <div>
+    <h1 class="h1">Paquetes</h1>
+    <p class="text-sm text-zinc-500 mt-1">Catálogo de tours que ofrece la agencia.</p>
+  </div>
+  <button type="button" class="btn-dark" (click)="nuevo()"><app-icon name="plus" size="w-4 h-4" /> Nuevo paquete</button>
+</div>
+
+<div class="relative max-w-sm mb-6">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><app-icon name="search" size="w-4 h-4" /></span>
+  <input type="search" class="field pl-9" placeholder="Buscar por nombre o descripción…" (input)="texto.set($any($event.target).value)">
+</div>
+
+<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+  @for (f of filas(); track f.paquete.paqueteId) {
+    <article class="card overflow-hidden flex flex-col" [class.opacity-70]="f.paquete.estado !== 'ACTIVO'">
+      <!-- Imagen del paquete (columna IMAGEN); si no hay, fondo de marca -->
+      <div class="relative h-40 bg-gradient-to-br text-white" [class]="f.gradiente">
+        @if (imagenes.url(f.paquete.imagen); as src) {
+          <img [src]="src" [alt]="f.paquete.nombre" class="absolute inset-0 w-full h-full object-cover">
+        } @else {
+          <div class="absolute right-4 top-4 opacity-30"><app-logo variante="isotipo" [oscuro]="true" [alto]="56" /></div>
+        }
+        <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/70 via-transparent to-transparent"></div>
+        <div class="absolute left-5 bottom-4 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-white/90">
+          <app-icon name="clock" size="w-3.5 h-3.5" /> {{ f.paquete.dias }} días · {{ f.paquete.noches }} noches
+        </div>
+      </div>
+      <div class="p-5 flex-1 flex flex-col">
+        <div class="flex items-start justify-between gap-3">
+          <h3 class="font-semibold text-zinc-900 leading-snug">{{ f.paquete.nombre }}</h3>
+          <app-badge [estado]="f.paquete.estado" />
+        </div>
+        <p class="text-sm text-zinc-500 mt-2 line-clamp-2">{{ f.paquete.descripcion }}</p>
+        <div class="mt-3 flex items-center gap-4 text-xs text-zinc-500">
+          <span class="inline-flex items-center gap-1"><app-icon name="calendar" size="w-3.5 h-3.5" /> {{ f.proximas }} salidas próximas</span>
+        </div>
+        <div class="mt-auto pt-5 flex items-center justify-between">
+          <div><span class="text-xl font-semibold tracking-tight">{{ f.paquete.precioBase | currency:'S/ ':'symbol':'1.0-0' }}</span><span class="text-xs text-zinc-400"> / persona</span></div>
+          <div class="flex items-center">
+            @if (f.paquete.estado === 'ACTIVO' && f.proximas > 0) {
+              <a [routerLink]="['/reservas/nueva']" [queryParams]="{ paquete: f.paquete.paqueteId }" class="btn-light !py-1.5 mr-1">Reservar</a>
+            }
+            <button type="button" class="icon-btn" title="Editar" (click)="editar(f.paquete.paqueteId)"><app-icon name="edit" /></button>
+            <button type="button" class="icon-btn-danger" title="Eliminar" (click)="eliminar(f.paquete.paqueteId)"><app-icon name="trash" /></button>
+          </div>
+        </div>
+      </div>
+    </article>
+  } @empty {
+    <div class="col-span-full text-center text-zinc-400 py-16">No se encontraron paquetes.</div>
+  }
+</div>
+
+@if (abierto()) {
+  <app-modal [titulo]="editId ? 'Editar paquete' : 'Nuevo paquete'" (cerrar)="abierto.set(false)">
+    <div class="space-y-4">
+      <div><label class="label">Nombre</label><input class="field" maxlength="100" [(ngModel)]="form.nombre"></div>
+      <div>
+        <label class="label">Descripción <span class="text-zinc-400 font-normal">({{ form.descripcion.length }}/1000)</span></label>
+        <textarea class="field" rows="3" maxlength="1000" [(ngModel)]="form.descripcion"></textarea>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div><label class="label">Días</label><input type="number" min="1" max="99" class="field" [(ngModel)]="form.dias" (ngModelChange)="sugerirNoches()"></div>
+        <div><label class="label">Noches</label><input type="number" min="0" max="99" class="field" [(ngModel)]="form.noches"></div>
+        <div><label class="label">Precio base (S/)</label><input type="number" min="0" step="0.01" class="field" [(ngModel)]="form.precioBase"></div>
+      </div>
+
+      <!-- Imagen (se sube desde el equipo) -->
+      <div>
+        <label class="label">Imagen <span class="text-zinc-400 font-normal">(JPG, PNG o WebP · se optimiza automáticamente)</span></label>
+        <input #archivo type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="elegir($event)">
+        @if (vistaPrevia; as src) {
+          <div class="relative h-40 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
+            <img [src]="src" alt="Vista previa" class="w-full h-full object-cover">
+            <div class="absolute top-2 right-2 flex gap-2">
+              <button type="button" class="btn-light !py-1.5 !px-3" (click)="archivo.click()">Cambiar</button>
+              <button type="button" class="btn-danger !py-1.5 !px-3" (click)="quitarImagen()">Quitar</button>
+            </div>
+          </div>
+        } @else {
+          <button type="button" (click)="archivo.click()" (dragover)="$event.preventDefault()" (drop)="soltar($event)"
+                  class="w-full h-32 rounded-lg border border-dashed border-zinc-300 grid place-items-center text-sm text-zinc-500 hover:bg-zinc-50 hover:border-zinc-400 transition-colors">
+            <span class="flex flex-col items-center gap-1.5">
+              <app-icon name="upload" size="w-6 h-6" />
+              Haz clic o arrastra una imagen
+            </span>
+          </button>
+        }
+      </div>
+
+      <div>
+        <label class="label">Estado</label>
+        <select class="field" [(ngModel)]="form.estado">
+          <option value="ACTIVO">Activo</option>
+          <option value="INACTIVO">Inactivo</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" class="btn-light" (click)="abierto.set(false)">Cancelar</button>
+        <button type="button" class="btn-dark" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

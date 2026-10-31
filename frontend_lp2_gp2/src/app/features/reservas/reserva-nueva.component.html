@@ -1,0 +1,113 @@
+<a routerLink="/reservas" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 mb-4">
+  <app-icon name="arrow-left" size="w-4 h-4" /> Reservas
+</a>
+<h1 class="h1 mb-6">Nueva reserva</h1>
+
+<div class="grid lg:grid-cols-3 gap-6 items-start">
+  <div class="lg:col-span-2 space-y-6">
+    <!-- Cliente y salida -->
+    <section class="card p-6">
+      <h2 class="font-semibold text-zinc-900 mb-4">Cliente y salida</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="label">Cliente</label>
+          <select class="field" [(ngModel)]="clienteId">
+            <option [ngValue]="null" disabled>Selecciona un cliente</option>
+            @for (c of store.clientes(); track c.clienteId) {
+              <option [ngValue]="c.clienteId">{{ c.nombreCompleto }}</option>
+            }
+          </select>
+          <a routerLink="/clientes" class="text-xs text-brand-700 hover:underline mt-1.5 inline-block">¿Cliente nuevo? Regístralo primero</a>
+        </div>
+        <div>
+          <label class="label">Salida</label>
+          <select class="field" [(ngModel)]="salidaId">
+            <option [ngValue]="null" disabled>Selecciona una salida</option>
+            @for (s of salidasDisponibles; track s.salidaId) {
+              <option [ngValue]="s.salidaId">
+                {{ store.getPaquete(s.paqueteId)?.nombre }} · {{ s.fechaInicio | date:'dd/MM/yyyy' }} · {{ s.cuposDisponibles }} cupos
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="mt-4">
+        <label class="label">Observaciones <span class="text-zinc-400 font-normal">({{ observaciones.length }}/200)</span></label>
+        <textarea class="field" rows="2" maxlength="200" [(ngModel)]="observaciones" placeholder="Alergias, habitación, solicitudes especiales…"></textarea>
+      </div>
+    </section>
+
+    <!-- Pasajeros -->
+    <section class="card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-zinc-900">Pasajeros ({{ pasajeros.length }})</h2>
+        <div class="flex gap-2">
+          <button type="button" class="btn-light !py-1.5" [disabled]="!clienteId" (click)="agregarCliente()">Usar datos del cliente</button>
+          <button type="button" class="btn-light !py-1.5" (click)="agregar()"><app-icon name="plus" size="w-4 h-4" /> Agregar</button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        @for (p of pasajeros; track p; let i = $index) {
+          <div class="rounded-xl border border-zinc-200 p-4 relative">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-medium uppercase tracking-wide text-zinc-400">Pasajero {{ i + 1 }}</span>
+              @if (pasajeros.length > 1) {
+                <button type="button" class="icon-btn-danger !p-1" (click)="quitar(i)" title="Quitar"><app-icon name="trash" size="w-4 h-4" /></button>
+              }
+            </div>
+            <div class="grid sm:grid-cols-6 gap-3">
+              <div class="sm:col-span-6">
+                <label class="label">Nombre completo</label>
+                <input class="field" [(ngModel)]="p.nombreCompleto" maxlength="150">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="label">Tipo doc.</label>
+                <select class="field" [(ngModel)]="p.tipoDocumento">
+                  @for (t of tipos; track t) { <option [value]="t">{{ t }}</option> }
+                </select>
+              </div>
+              <div class="sm:col-span-4">
+                <label class="label">N° de documento</label>
+                <input class="field" [(ngModel)]="p.numeroDocumento" maxlength="20">
+              </div>
+              <div class="sm:col-span-3">
+                <label class="label">Nacionalidad</label>
+                <input class="field" [(ngModel)]="p.nacionalidad" maxlength="50">
+              </div>
+              <div class="sm:col-span-3">
+                <label class="label">Fecha de nacimiento</label>
+                <input type="date" class="field" [max]="ayer" [(ngModel)]="p.fechaNacimiento">
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      @if (excede) {
+        <div class="mt-4 rounded-lg bg-rose-50 text-rose-700 text-sm px-3 py-2.5">
+          Hay más pasajeros que cupos disponibles ({{ salida?.cuposDisponibles }}).
+        </div>
+      }
+    </section>
+  </div>
+
+  <!-- Resumen -->
+  <aside class="card p-6 lg:sticky lg:top-8">
+    <h2 class="font-semibold text-zinc-900 mb-4">Resumen</h2>
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between gap-4"><dt class="text-zinc-500">Paquete</dt><dd class="font-medium text-right">{{ paquete?.nombre ?? '—' }}</dd></div>
+      <div class="flex justify-between gap-4"><dt class="text-zinc-500">Fechas</dt>
+        <dd class="font-medium text-right">
+          @if (salida) { {{ salida.fechaInicio | date:'dd/MM' }} → {{ salida.fechaFin | date:'dd/MM/yyyy' }} } @else { — }
+        </dd></div>
+      <div class="flex justify-between gap-4"><dt class="text-zinc-500">Precio por persona</dt><dd class="font-medium">{{ (paquete?.precioBase ?? 0) | currency:'S/ ' }}</dd></div>
+      <div class="flex justify-between gap-4"><dt class="text-zinc-500">Viajeros</dt><dd class="font-medium">{{ pasajeros.length }}</dd></div>
+    </dl>
+    <div class="mt-5 pt-5 border-t border-zinc-100 flex items-baseline justify-between">
+      <span class="text-zinc-500 text-sm">Total</span>
+      <span class="text-2xl font-semibold tracking-tight">{{ total | currency:'S/ ' }}</span>
+    </div>
+    <button type="button" class="btn-brand w-full mt-6" [disabled]="!puedeGuardar" (click)="guardar()">Crear reserva</button>
+    <p class="text-xs text-zinc-400 mt-3 text-center">Se crea como pendiente y descuenta los cupos de la salida.</p>
+  </aside>
+</div>

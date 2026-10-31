@@ -1,0 +1,52 @@
+<div class="min-h-screen lg:pl-64">
+  <!-- Barra superior móvil -->
+  <header class="lg:hidden sticky top-0 z-30 h-14 px-4 flex items-center justify-between bg-white/80 backdrop-blur border-b border-zinc-200">
+    <button type="button" class="p-1 -ml-1 text-zinc-600" (click)="abierto.set(true)"><app-icon name="menu" /></button>
+    <app-logo variante="horizontal" [alto]="22" />
+    <span class="w-6"></span>
+  </header>
+
+  @if (abierto()) {
+    <div class="lg:hidden fixed inset-0 z-40 bg-zinc-900/40" (click)="abierto.set(false)"></div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-zinc-200 flex flex-col transition-transform lg:translate-x-0"
+         [class.-translate-x-full]="!abierto()">
+    <div class="h-20 px-6 flex flex-col justify-center gap-1.5 border-b border-zinc-100">
+      <app-logo variante="horizontal" [alto]="26" />
+      <span class="eyebrow">Tour Manager</span>
+    </div>
+
+    <nav class="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+      @for (item of menu; track item.ruta) {
+        <a [routerLink]="item.ruta" (click)="abierto.set(false)"
+           routerLinkActive="bg-zinc-100 text-zinc-900" [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 transition-colors">
+          <app-icon [name]="item.icono" size="w-[18px] h-[18px]" />
+          <span class="flex-1">{{ item.texto }}</span>
+          @if (item.ruta === '/reservas' && pendientes() > 0) {
+            <span class="text-[11px] font-semibold bg-amber-100 text-amber-700 rounded-full px-1.5 py-0.5">{{ pendientes() }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="p-3 border-t border-zinc-100">
+      <div class="flex items-center gap-3 px-2 py-2">
+        <div class="w-9 h-9 rounded-full bg-brand-100 text-brand-700 grid place-items-center text-sm font-semibold">{{ iniciales() }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium text-zinc-900 truncate">{{ auth.usuario()?.username }}</div>
+          <div class="eyebrow !text-[10px]">{{ auth.usuario()?.rol }}</div>
+        </div>
+        <button type="button" class="p-1.5 rounded-md text-zinc-400 hover:text-rose-600 hover:bg-rose-50" title="Cerrar sesión" (click)="salir()">
+          <app-icon name="logout" size="w-[18px] h-[18px]" />
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="p-4 sm:p-8 max-w-7xl mx-auto">
+    <router-outlet />
+  </main>
+</div>

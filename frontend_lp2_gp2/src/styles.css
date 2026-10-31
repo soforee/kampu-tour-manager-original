@@ -1,0 +1,10 @@
+/* Estilos globales mínimos: el diseño se hace con Tailwind (CDN) */
+app-root { display: block; }
+
+/* Títulos y marca en Archivo extendida, como el logotipo KAMPU */
+.h1, .font-wide { font-stretch: 118%; }
+.font-wordmark { font-stretch: 125%; font-weight: 800; letter-spacing: 0.02em; line-height: 1; }
+
+.swal2-popup { font-family: inherit; border-radius: 4px; background: #F4F1E8; color: #16301F; }
+.swal2-styled { border-radius: 2px !important; }
+input[type='date']::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }

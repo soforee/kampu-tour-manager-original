@@ -1,0 +1,50 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+  <div>
+    <h1 class="h1">Reservas</h1>
+    <p class="text-sm text-zinc-500 mt-1">{{ filas().length }} resultados</p>
+  </div>
+  <a routerLink="/reservas/nueva" class="btn-dark"><app-icon name="plus" size="w-4 h-4" /> Nueva reserva</a>
+</div>
+
+<div class="flex flex-wrap items-center gap-3 mb-4">
+  <div class="relative flex-1 min-w-[220px] max-w-sm">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><app-icon name="search" size="w-4 h-4" /></span>
+    <input type="search" class="field pl-9" placeholder="Código, cliente o paquete…" [value]="texto()" (input)="texto.set($any($event.target).value)">
+  </div>
+  <div class="inline-flex rounded-lg bg-zinc-100 p-1 text-sm">
+    @for (e of estados; track e.valor) {
+      <button type="button" class="px-3 py-1.5 rounded-md font-medium transition-colors"
+              [class]="estado() === e.valor ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'"
+              (click)="estado.set(e.valor)">{{ e.texto }}</button>
+    }
+  </div>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr><th class="th">Reserva</th><th class="th">Cliente</th><th class="th">Salida</th><th class="th text-center">Viajeros</th>
+          <th class="th text-right">Total</th><th class="th text-right">Saldo</th><th class="th">Estado</th><th class="th">Pago</th><th class="th"></th></tr>
+    </thead>
+    <tbody>
+      @for (f of filas(); track f.reserva.reservaId) {
+        <tr class="border-t border-zinc-100 hover:bg-zinc-50/60">
+          <td class="td font-medium text-zinc-900">{{ f.codigo }}</td>
+          <td class="td">{{ f.cliente?.nombreCompleto }}</td>
+          <td class="td">
+            <div>{{ f.paquete?.nombre }}</div>
+            <div class="text-xs text-zinc-400">{{ f.salida?.fechaInicio | date:'dd/MM/yyyy' }}</div>
+          </td>
+          <td class="td text-center">{{ f.reserva.numeroViajeros }}</td>
+          <td class="td text-right">{{ f.reserva.montoTotal | currency:'S/ ' }}</td>
+          <td class="td text-right" [class]="f.saldo > 0 ? 'text-amber-600 font-medium' : 'text-zinc-400'">{{ f.saldo | currency:'S/ ' }}</td>
+          <td class="td"><app-badge [estado]="f.reserva.estadoReserva" /></td>
+          <td class="td"><app-badge [estado]="f.reserva.estadoPago" /></td>
+          <td class="td text-right"><a [routerLink]="['/reservas', f.reserva.reservaId]" class="icon-btn" title="Ver detalle"><app-icon name="eye" /></a></td>
+        </tr>
+      } @empty {
+        <tr><td colspan="9" class="text-center text-zinc-400 py-12">No se encontraron reservas.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

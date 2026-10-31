@@ -1,0 +1,12 @@
+<span class="inline-flex" [class]="variante === 'vertical' ? 'flex-col items-center gap-3' : 'items-center gap-3'">
+  <svg viewBox="0 0 176 124" [style.height.px]="alto" [style.width.px]="alto * 176 / 124" aria-label="KAMPU" role="img">
+    <path d="M66 0L0 112h60z" [attr.fill]="carpa" />
+    <path d="M66 0l68 112H71z" [attr.fill]="carpa" />
+    <circle cx="125" cy="17" r="9" fill="#6B4A32" />
+    <path d="M159 81l17 31h-34z" fill="#6B7A3A" />
+    <rect y="117" width="176" height="7" fill="#6B4A32" />
+  </svg>
+  @if (variante !== 'isotipo') {
+    <span class="font-wordmark" [style.font-size.px]="alto * 0.9" [style.color]="oscuro ? '#F4F1E8' : '#1F3D2B'">KAMPU</span>
+  }
+</span>

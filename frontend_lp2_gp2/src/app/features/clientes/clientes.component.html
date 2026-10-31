@@ -1,0 +1,63 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+  <div>
+    <h1 class="h1">Clientes</h1>
+    <p class="text-sm text-zinc-500 mt-1">{{ filas().length }} registrados</p>
+  </div>
+  <button type="button" class="btn-dark" (click)="nuevo()"><app-icon name="plus" size="w-4 h-4" /> Nuevo cliente</button>
+</div>
+
+<div class="relative max-w-sm mb-4">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><app-icon name="search" size="w-4 h-4" /></span>
+  <input type="search" class="field pl-9" placeholder="Nombre o documento…" (input)="texto.set($any($event.target).value)">
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead><tr><th class="th">Cliente</th><th class="th">Tipo doc.</th><th class="th">N° documento</th><th class="th">Contacto</th><th class="th text-center">Reservas</th><th class="th"></th></tr></thead>
+    <tbody>
+      @for (f of filas(); track f.cliente.clienteId) {
+        <tr class="border-t border-zinc-100 hover:bg-zinc-50/60">
+          <td class="td">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-zinc-100 text-zinc-600 grid place-items-center text-xs font-semibold">{{ f.cliente.nombreCompleto.slice(0, 1) }}</div>
+              <span class="font-medium text-zinc-900">{{ f.cliente.nombreCompleto }}</span>
+            </div>
+          </td>
+          <td class="td"><span class="font-mono text-xs text-zinc-500">{{ f.cliente.tipoDocumento }}</span></td>
+          <td class="td">{{ f.cliente.numeroDocumento }}</td>
+          <td class="td"><div>{{ f.cliente.email }}</div><div class="text-xs text-zinc-400">{{ f.cliente.telefono }}</div></td>
+          <td class="td text-center">{{ f.reservas }}</td>
+          <td class="td text-right whitespace-nowrap">
+            <button type="button" class="icon-btn" title="Editar" (click)="editar(f.cliente.clienteId)"><app-icon name="edit" /></button>
+            <button type="button" class="icon-btn-danger" title="Eliminar" (click)="eliminar(f.cliente.clienteId)"><app-icon name="trash" /></button>
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="6" class="text-center text-zinc-400 py-12">No se encontraron clientes.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (abierto()) {
+  <app-modal [titulo]="editId ? 'Editar cliente' : 'Nuevo cliente'" (cerrar)="abierto.set(false)">
+    <div class="space-y-4">
+      <div><label class="label">Nombre completo</label><input class="field" maxlength="150" [(ngModel)]="form.nombreCompleto"></div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="label">Tipo doc.</label>
+          <select class="field" [(ngModel)]="form.tipoDocumento">@for (t of tipos; track t) { <option [value]="t">{{ t }}</option> }</select>
+        </div>
+        <div class="col-span-2"><label class="label">N° de documento</label><input class="field" maxlength="20" [(ngModel)]="form.numeroDocumento"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="label">Correo</label><input type="email" class="field" maxlength="100" [(ngModel)]="form.email"></div>
+        <div><label class="label">Teléfono</label><input class="field" maxlength="20" [(ngModel)]="form.telefono"></div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" class="btn-light" (click)="abierto.set(false)">Cancelar</button>
+        <button type="button" class="btn-dark" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

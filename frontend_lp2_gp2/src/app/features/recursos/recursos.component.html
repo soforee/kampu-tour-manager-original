@@ -1,0 +1,74 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+  <div>
+    <h1 class="h1">Guías y transporte</h1>
+    <p class="text-sm text-zinc-500 mt-1">Recursos que se asignan a cada salida.</p>
+  </div>
+  <button type="button" class="btn-dark" (click)="nuevo()"><app-icon name="plus" size="w-4 h-4" /> {{ tab() === 'guias' ? 'Nuevo guía' : 'Nuevo transporte' }}</button>
+</div>
+
+<div class="inline-flex rounded-lg bg-zinc-100 p-1 text-sm mb-4">
+  <button type="button" class="px-3 py-1.5 rounded-md font-medium" [class]="tab() === 'guias' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'" (click)="tab.set('guias')">Guías</button>
+  <button type="button" class="px-3 py-1.5 rounded-md font-medium" [class]="tab() === 'transporte' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'" (click)="tab.set('transporte')">Transporte</button>
+</div>
+
+@if (tab() === 'guias') {
+  <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    @for (g of store.guias(); track g.guiaId) {
+      <div class="card p-5 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 grid place-items-center"><app-icon name="user" size="w-5 h-5" /></div>
+          <div>
+            <div class="font-medium text-zinc-900">{{ g.nombreCompleto }}</div>
+            <div class="text-sm text-zinc-500">{{ g.telefono }}</div>
+            <div class="text-xs text-zinc-400 mt-1">{{ g.especialidad }}</div>
+          </div>
+        </div>
+        <div class="flex shrink-0">
+          <button type="button" class="icon-btn" (click)="editarGuia(g.guiaId)"><app-icon name="edit" /></button>
+          <button type="button" class="icon-btn-danger" (click)="eliminarGuia(g.guiaId)"><app-icon name="trash" /></button>
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    @for (t of store.transportes(); track t.transporteId) {
+      <div class="card p-5 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-sky-100 text-sky-700 grid place-items-center"><app-icon name="truck" size="w-5 h-5" /></div>
+          <div>
+            <div class="font-medium text-zinc-900">{{ t.marcaModelo }}</div>
+            <div class="text-sm text-zinc-500">Placa {{ t.placa }}</div>
+            <div class="text-xs text-zinc-400 mt-1">Capacidad: {{ t.capacidad }} pasajeros</div>
+          </div>
+        </div>
+        <div class="flex shrink-0">
+          <button type="button" class="icon-btn" (click)="editarTransporte(t.transporteId)"><app-icon name="edit" /></button>
+          <button type="button" class="icon-btn-danger" (click)="eliminarTransporte(t.transporteId)"><app-icon name="trash" /></button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (abierto()) {
+  <app-modal [titulo]="(editId ? 'Editar ' : 'Nuevo ') + (tab() === 'guias' ? 'guía' : 'transporte')" (cerrar)="abierto.set(false)">
+    <div class="space-y-4">
+      @if (tab() === 'guias') {
+        <div><label class="label">Nombre completo</label><input class="field" maxlength="150" [(ngModel)]="guia.nombreCompleto"></div>
+        <div><label class="label">Especialidad</label><input class="field" maxlength="100" [(ngModel)]="guia.especialidad" placeholder="Aventura y trekking…"></div>
+        <div><label class="label">Teléfono</label><input class="field" maxlength="20" [(ngModel)]="guia.telefono"></div>
+      } @else {
+        <div><label class="label">Marca / modelo</label><input class="field" maxlength="100" [(ngModel)]="transp.marcaModelo" placeholder="Toyota Hiace…"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Placa</label><input class="field" maxlength="15" [(ngModel)]="transp.placa"></div>
+          <div><label class="label">Capacidad</label><input type="number" min="1" max="999" class="field" [(ngModel)]="transp.capacidad"></div>
+        </div>
+      }
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" class="btn-light" (click)="abierto.set(false)">Cancelar</button>
+        <button type="button" class="btn-dark" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

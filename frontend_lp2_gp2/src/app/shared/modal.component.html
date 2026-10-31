@@ -1,0 +1,14 @@
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm" (click)="cerrar.emit()"></div>
+  <div class="relative bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+      <h3 class="font-semibold text-zinc-900">{{ titulo }}</h3>
+      <button type="button" class="text-zinc-400 hover:text-zinc-700" (click)="cerrar.emit()">
+        <app-icon name="x" />
+      </button>
+    </div>
+    <div class="p-6 overflow-y-auto">
+      <ng-content />
+    </div>
+  </div>
+</div>

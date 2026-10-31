@@ -1,0 +1,90 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+  <div>
+    <h1 class="h1">Salidas programadas</h1>
+    <p class="text-sm text-zinc-500 mt-1">Fechas, cupos, guía y transporte de cada salida.</p>
+  </div>
+  <button type="button" class="btn-dark" (click)="nuevo()"><app-icon name="plus" size="w-4 h-4" /> Nueva salida</button>
+</div>
+
+<div class="inline-flex rounded-lg bg-zinc-100 p-1 text-sm mb-4">
+  @for (e of filtros; track e.valor) {
+    <button type="button" class="px-3 py-1.5 rounded-md font-medium transition-colors"
+            [class]="filtro() === e.valor ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'"
+            (click)="filtro.set(e.valor)">{{ e.texto }}</button>
+  }
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead><tr><th class="th">Paquete</th><th class="th">Fechas</th><th class="th min-w-[170px]">Cupos</th><th class="th">Guía</th><th class="th">Transporte</th><th class="th">Estado</th><th class="th"></th></tr></thead>
+    <tbody>
+      @for (f of filas(); track f.salida.salidaId) {
+        <tr class="border-t border-zinc-100 hover:bg-zinc-50/60">
+          <td class="td"><div class="font-medium text-zinc-900">{{ f.paquete?.nombre }}</div><div class="text-xs text-zinc-400">{{ f.paquete?.dias }}D / {{ f.paquete?.noches }}N</div></td>
+          <td class="td whitespace-nowrap">{{ f.salida.fechaInicio | date:'dd/MM/yy' }} → {{ f.salida.fechaFin | date:'dd/MM/yy' }}</td>
+          <td class="td">
+            <div class="text-xs text-zinc-500 mb-1">{{ f.salida.cuposDisponibles }} libres de {{ f.salida.cuposMaximos }}</div>
+            <div class="h-1.5 rounded-full bg-zinc-100 overflow-hidden"><div class="h-full rounded-full" [class]="f.pct >= 90 ? 'bg-rose-500' : 'bg-brand-500'" [style.width.%]="f.pct"></div></div>
+          </td>
+          <td class="td">{{ f.guia?.nombreCompleto ?? '—' }}</td>
+          <td class="td">{{ f.transporte ? f.transporte.marcaModelo + ' · ' + f.transporte.placa : '—' }}</td>
+          <td class="td"><app-badge [estado]="f.salida.estado" /></td>
+          <td class="td text-right whitespace-nowrap">
+            <button type="button" class="icon-btn" title="Editar" (click)="editar(f.salida.salidaId)"><app-icon name="edit" /></button>
+            <button type="button" class="icon-btn-danger" title="Eliminar" (click)="eliminar(f.salida.salidaId)"><app-icon name="trash" /></button>
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="7" class="text-center text-zinc-400 py-12">No hay salidas para mostrar.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (abierto()) {
+  <app-modal [titulo]="editId ? 'Editar salida' : 'Nueva salida'" (cerrar)="abierto.set(false)">
+    <div class="space-y-4">
+      <div>
+        <label class="label">Paquete</label>
+        <select class="field" [(ngModel)]="form.paqueteId" (ngModelChange)="sugerirFin()">
+          <option [ngValue]="0" disabled>Selecciona un paquete</option>
+          @for (p of store.paquetes(); track p.paqueteId) { <option [ngValue]="p.paqueteId">{{ p.nombre }} ({{ p.dias }}D / {{ p.noches }}N)</option> }
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="label">Fecha inicio</label><input type="date" class="field" [(ngModel)]="form.fechaInicio" (ngModelChange)="sugerirFin()"></div>
+        <div><label class="label">Fecha fin</label><input type="date" class="field" [min]="form.fechaInicio" [(ngModel)]="form.fechaFin"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="label">Cupos máximos</label><input type="number" min="1" max="999" class="field" [(ngModel)]="form.cuposMaximos"></div>
+        <div>
+          <label class="label">Estado</label>
+          <select class="field" [(ngModel)]="form.estado">
+            @for (e of estados; track e) { <option [value]="e">{{ e.charAt(0) + e.slice(1).toLowerCase() }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label">Guía</label>
+          <select class="field" [(ngModel)]="form.guiaId">
+            <option [ngValue]="null">Sin asignar</option>
+            @for (g of store.guias(); track g.guiaId) { <option [ngValue]="g.guiaId">{{ g.nombreCompleto }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="label">Transporte</label>
+          <select class="field" [(ngModel)]="form.transporteId">
+            <option [ngValue]="null">Sin asignar</option>
+            @for (t of store.transportes(); track t.transporteId) { <option [ngValue]="t.transporteId">{{ t.marcaModelo }} · {{ t.placa }} ({{ t.capacidad }})</option> }
+          </select>
+        </div>
+      </div>
+      @if (editId) { <p class="text-xs text-zinc-400">Los cupos disponibles se recalculan según las reservas activas.</p> }
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" class="btn-light" (click)="abierto.set(false)">Cancelar</button>
+        <button type="button" class="btn-dark" (click)="guardar()">Guardar</button>
+      </div>
+    </div>
+  </app-modal>
+}

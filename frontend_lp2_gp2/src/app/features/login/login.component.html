@@ -1,0 +1,83 @@
+<div class="min-h-screen grid lg:grid-cols-2">
+  <!-- Panel de marca -->
+  <section class="hidden lg:flex relative overflow-hidden bg-zinc-900 text-white p-12 flex-col justify-between">
+    <img src="paisaje_inicio.jpg" alt="" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/45 to-zinc-900/55"></div>
+
+    <div class="relative">
+      <app-logo variante="horizontal" [oscuro]="true" colorCarpa="#F4F1E8" [alto]="36" />
+      <div class="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-200">Tour Manager</div>
+    </div>
+
+    <div class="relative max-w-md">
+      <div class="font-mono text-[11px] uppercase tracking-[0.14em] text-brand-200 mb-4">Giras · Expediciones · Eventos al aire libre</div>
+      <h1 class="text-4xl font-extrabold font-wide leading-tight tracking-tight">Cada salida, reserva y pago en un solo lugar.</h1>
+      <p class="mt-4 text-zinc-200 leading-relaxed">Controla cupos en tiempo real, cobra con claridad y mantén a tus pasajeros y guías sincronizados.</p>
+    </div>
+
+    <div class="relative flex gap-8 text-sm text-zinc-200">
+      <div><div class="text-2xl font-extrabold font-wide text-white">24/7</div>Control de cupos</div>
+      <div><div class="text-2xl font-extrabold font-wide text-white">3</div>Monedas aceptadas</div>
+      <div><div class="text-2xl font-extrabold font-wide text-white">100%</div>Trazabilidad de pagos</div>
+    </div>
+  </section>
+
+  <!-- Banner móvil -->
+  <div class="lg:hidden relative h-44 overflow-hidden bg-zinc-900 flex flex-col justify-end p-6">
+    <img src="paisaje_inicio.jpg" alt="" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/40 to-zinc-900/30"></div>
+    <div class="relative">
+      <app-logo variante="horizontal" [oscuro]="true" colorCarpa="#F4F1E8" [alto]="28" />
+      <div class="mt-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-300">Tour Manager</div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <section class="flex items-center justify-center p-6 sm:p-12 bg-white">
+    <div class="w-full max-w-sm">
+
+      <h2 class="text-2xl font-extrabold font-wide tracking-tight text-zinc-900">Bienvenido de nuevo</h2>
+      <p class="mt-1.5 text-sm text-zinc-500">Ingresa con tu cuenta para gestionar la agencia.</p>
+
+      <form class="mt-8 space-y-4" (ngSubmit)="entrar()">
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 mb-1.5">Usuario</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><app-icon name="user" size="w-4 h-4" /></span>
+            <input type="text" name="username" [(ngModel)]="username" maxlength="50" autocomplete="username" placeholder="tu usuario"
+                   class="w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-zinc-700 mb-1.5">Contraseña</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"><app-icon name="lock" size="w-4 h-4" /></span>
+            <input [type]="ver() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="current-password" placeholder="••••••••"
+                   class="w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-16 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 hover:text-zinc-700"
+                    (click)="ver.set(!ver())">{{ ver() ? 'Ocultar' : 'Ver' }}</button>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="rounded-lg bg-rose-50 text-rose-700 text-sm px-3 py-2.5">{{ error() }}</div>
+        }
+
+        <button type="submit" [disabled]="cargando()"
+                class="w-full rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-60 text-white text-sm font-medium py-2.5 transition-colors">
+          {{ cargando() ? 'Ingresando…' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <div class="mt-8 rounded-xl border border-dashed border-zinc-200 p-4">
+        <div class="eyebrow mb-2">Cuentas de demostración</div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="text-xs rounded-full bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 text-zinc-700"
+                  (click)="rellenar('admin', 'admin123')">Administrador</button>
+          <button type="button" class="text-xs rounded-full bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 text-zinc-700"
+                  (click)="rellenar('ventas', 'ventas123')">Ventas</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

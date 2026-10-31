@@ -1,0 +1,161 @@
+@if (reserva(); as r) {
+  <a routerLink="/reservas" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 mb-4">
+    <app-icon name="arrow-left" size="w-4 h-4" /> Reservas
+  </a>
+
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+    <div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <h1 class="h1">{{ codReserva() }}</h1>
+        <app-badge [estado]="r.estadoReserva" />
+        <app-badge [estado]="r.estadoPago" />
+      </div>
+      <p class="text-sm text-zinc-500 mt-1">Creada el {{ r.fechaReserva | date:'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+    <div class="flex gap-2">
+      @if (r.estadoReserva === 'PENDIENTE') { <button type="button" class="btn-brand" (click)="confirmar()"><app-icon name="check" size="w-4 h-4" /> Confirmar</button> }
+      @if (r.estadoReserva === 'CONFIRMADA') { <button type="button" class="btn-dark" (click)="completar()">Marcar completada</button> }
+      @if (r.estadoReserva === 'PENDIENTE' || r.estadoReserva === 'CONFIRMADA') {
+        <button type="button" class="btn-danger" (click)="anular()">Anular</button>
+      }
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6 items-start">
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Viaje -->
+      <section class="card p-6">
+        <h2 class="font-semibold text-zinc-900 mb-4">Viaje</h2>
+        <dl class="grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+          <div><dt class="text-zinc-400">Paquete</dt><dd class="font-medium">{{ paquete()?.nombre }}</dd></div>
+          <div><dt class="text-zinc-400">Duración</dt><dd class="font-medium">{{ paquete()?.dias }} días / {{ paquete()?.noches }} noches</dd></div>
+          <div><dt class="text-zinc-400">Fechas</dt><dd class="font-medium">{{ salida()?.fechaInicio | date:'dd/MM/yyyy' }} → {{ salida()?.fechaFin | date:'dd/MM/yyyy' }}</dd></div>
+          <div><dt class="text-zinc-400">Estado de la salida</dt><dd>@if (salida(); as s) { <app-badge [estado]="s.estado" /> }</dd></div>
+          <div><dt class="text-zinc-400">Guía</dt><dd class="font-medium">{{ guia()?.nombreCompleto ?? 'Sin asignar' }}</dd></div>
+          <div><dt class="text-zinc-400">Transporte</dt><dd class="font-medium">{{ transporte() ? transporte()!.marcaModelo + ' · ' + transporte()!.placa : 'Sin asignar' }}</dd></div>
+          <div><dt class="text-zinc-400">Cliente</dt><dd class="font-medium">{{ cliente()?.nombreCompleto }}</dd></div>
+          <div><dt class="text-zinc-400">Contacto</dt><dd class="font-medium">{{ cliente()?.telefono }}</dd></div>
+        </dl>
+        @if (r.observaciones) {
+          <div class="mt-5 pt-4 border-t border-zinc-100 text-sm"><span class="text-zinc-400">Observaciones:</span> {{ r.observaciones }}</div>
+        }
+        @if (r.estadoReserva === 'ANULADA') {
+          <div class="mt-5 rounded-lg bg-rose-50 text-rose-700 text-sm px-4 py-3">
+            Anulada por <strong>{{ usuarioAnula() }}</strong>.
+            @if (r.formaReembolso) { Reembolso por <strong>{{ r.formaReembolso }}</strong>. }
+          </div>
+        }
+      </section>
+
+      <!-- Pasajeros -->
+      <section class="card">
+        <h2 class="font-semibold text-zinc-900 px-6 py-4 border-b border-zinc-100">Pasajeros ({{ pasajeros().length }})</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr><th class="th">Nombre</th><th class="th">Tipo doc.</th><th class="th">N° documento</th><th class="th">Nacionalidad</th><th class="th">Nacimiento</th></tr></thead>
+            <tbody>
+              @for (p of pasajeros(); track p.pasajeroId) {
+                <tr class="border-t border-zinc-100">
+                  <td class="td font-medium">{{ p.nombreCompleto }}</td>
+                  <td class="td"><span class="font-mono text-xs text-zinc-500">{{ p.tipoDocumento }}</span></td>
+                  <td class="td">{{ p.numeroDocumento }}</td>
+                  <td class="td">{{ p.nacionalidad }}</td>
+                  <td class="td">{{ p.fechaNacimiento | date:'dd/MM/yyyy' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pagos -->
+      <section class="card">
+        <h2 class="font-semibold text-zinc-900 px-6 py-4 border-b border-zinc-100">Pagos</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr><th class="th">Fecha</th><th class="th">Método</th><th class="th">Código</th><th class="th text-right">Monto</th><th class="th">Estado</th><th class="th"></th></tr></thead>
+            <tbody>
+              @for (p of pagos(); track p.pagoId) {
+                <tr class="border-t border-zinc-100">
+                  <td class="td">{{ p.fechaPago | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="td">{{ p.metodoPago }}</td>
+                  <td class="td text-zinc-500">{{ p.codigoTransaccion }}</td>
+                  <td class="td text-right font-medium">{{ p.monto | currency:p.moneda + ' ' }}</td>
+                  <td class="td"><app-badge [estado]="p.estadoTransaccion" /></td>
+                  <td class="td text-right whitespace-nowrap">
+                    @if (p.estadoTransaccion === 'PENDIENTE') {
+                      <button type="button" class="icon-btn text-emerald-600" title="Aprobar" (click)="resolver(p.pagoId, 'APROBADO')"><app-icon name="check" /></button>
+                      <button type="button" class="icon-btn-danger" title="Rechazar" (click)="resolver(p.pagoId, 'RECHAZADO')"><app-icon name="x" /></button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center text-zinc-400 py-8">Aún no hay pagos registrados.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (puedePagar()) {
+          <div class="p-6 border-t border-zinc-100 bg-zinc-50/60 rounded-b-2xl">
+            <h3 class="text-sm font-semibold text-zinc-900 mb-4">Registrar pago</h3>
+            <div class="grid sm:grid-cols-6 gap-3">
+              <div class="sm:col-span-2">
+                <label class="label">Monto</label>
+                <input type="number" min="0" step="0.01" class="field" [(ngModel)]="monto" placeholder="0.00">
+              </div>
+              <div>
+                <label class="label">Moneda</label>
+                <select class="field" [(ngModel)]="moneda">
+                  @for (m of monedas; track m) { <option [value]="m">{{ m }}</option> }
+                </select>
+              </div>
+              <div class="sm:col-span-3">
+                <label class="label">Método</label>
+                <select class="field" [(ngModel)]="metodo">
+                  @for (m of metodos; track m) { <option [value]="m">{{ m }}</option> }
+                </select>
+              </div>
+              <div class="sm:col-span-3">
+                <label class="label">Código de transacción</label>
+                <input class="field" maxlength="100" [(ngModel)]="codigo" placeholder="Opcional (se genera si lo dejas vacío)">
+              </div>
+              <div class="sm:col-span-3">
+                <label class="label">Estado</label>
+                <select class="field" [(ngModel)]="estadoTx">
+                  <option value="APROBADO">Aprobado</option>
+                  <option value="PENDIENTE">Pendiente de validación</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+              <div class="text-xs text-zinc-500">
+                @if (monto && moneda !== 'PEN') { Equivale a <strong>{{ equivalente() | currency:'S/ ' }}</strong> (1 {{ moneda }} = S/ {{ tasa() }}) · }
+                Saldo: <strong>{{ saldo() | currency:'S/ ' }}</strong>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" class="btn-light" (click)="usarSaldo()">Usar saldo</button>
+                <button type="button" class="btn-brand" [disabled]="!monto || monto <= 0" (click)="registrarPago()">Registrar</button>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Resumen financiero -->
+    <aside class="card p-6 lg:sticky lg:top-8">
+      <h2 class="font-semibold text-zinc-900 mb-4">Resumen financiero</h2>
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between"><dt class="text-zinc-500">Viajeros</dt><dd class="font-medium">{{ r.numeroViajeros }}</dd></div>
+        <div class="flex justify-between"><dt class="text-zinc-500">Monto total</dt><dd class="font-medium">{{ r.montoTotal | currency:'S/ ' }}</dd></div>
+        <div class="flex justify-between"><dt class="text-zinc-500">Monto pagado</dt><dd class="font-medium text-brand-700">{{ r.montoPagado | currency:'S/ ' }}</dd></div>
+      </dl>
+      <div class="mt-4 h-2 rounded-full bg-zinc-100 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" [style.width.%]="avance()"></div></div>
+      <div class="mt-5 pt-5 border-t border-zinc-100 flex items-baseline justify-between">
+        <span class="text-zinc-500 text-sm">Saldo</span>
+        <span class="text-2xl font-semibold tracking-tight" [class]="saldo() > 0 ? 'text-amber-600' : 'text-zinc-900'">{{ saldo() | currency:'S/ ' }}</span>
+      </div>
+    </aside>
+  </div>
+}
